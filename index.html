@@ -44,6 +44,16 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // Add user interaction handler to enable audio
+        document.addEventListener('click', function() {
+            const audio = document.getElementById('background-music');
+            if (audio.paused) {
+                console.log('User interaction detected, enabling audio');
+                // We don't actually play here, just prepare the audio context
+                audio.load();
+            }
+        }, { once: true });
 
         // Add global error handler to catch any Three.js errors
         window.addEventListener('error', function(e) {
@@ -298,17 +308,12 @@
                     })
                     .catch(error => {
                         console.error('Audio playback failed:', error);
+                        // If we get NotAllowedError, we need user interaction
+                        if (error.name === 'NotAllowedError') {
+                            console.log('Audio playback requires user interaction first');
+                        }
                     });
             }
-            
-            // Audio is not playing, so play it
-            audio.play()
-                .then(() => {
-                    console.log('Audio playback started successfully');
-                })
-                .catch(error => {
-                    console.error('Audio playback failed:', error);
-                });
         });
         
         // Handle window resize
