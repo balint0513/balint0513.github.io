@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&family=Winky+Sans:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <title>Rotatable Textured Egg</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: greenyellow;
+            font-family: "Winky Sans";
+            pointer-events: none;
+            font-size: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">SHREGG</div>
+    
+    <audio id="background-music" loop>
+    <source src="AUUGHHH EXTENDED SOUND EFFECT-yt.savetube.me.mp3" type="audio/mpeg">
+    </audio>
+    <script>
+        // JavaScript to play the background music automatically
+        window.addEventListener('load', function() {
+            var audio = document.getElementById('background-music');
+            audio.play();
+        });
+    </script>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Add global error handler to catch any Three.js errors
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.message);
+        });
+
+        // Check for WebGL compatibility
+        if (!window.WebGLRenderingContext) {
+            console.error('WebGL is not supported by your browser');
+            document.body.innerHTML = '<div style="text-align: center; color: red; margin-top: 20px;">WebGL is not supported by your browser</div>';
+        }
+
+        // Initialize scene, camera, and renderer
+        const scene = new THREE.Scene();
+        // Load forest background
+        const backgroundLoader = new THREE.TextureLoader();
+        // Add cross-origin handling for background texture
+        backgroundLoader.crossOrigin = 'anonymous';
+        
+        // Add error handling for background texture loading
+        const backgroundTexture = backgroundLoader.load(
+            './forest_background.svg', // Use relative path with ./ prefix
+            function(loadedTexture) {
+                console.log('Background texture loaded successfully');
+                scene.background = loadedTexture;
+            },
+            function(xhr) {
+                console.log('Background loading: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function(err) {
+                console.error('Error loading background texture:', err);
+                // Fallback to a solid color if background texture fails to load
+                scene.background = new THREE.Color(0x87CEEB); // Sky blue color as fallback
+            }
+        );
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+        
+        // Add lighting for forest scene
+        const ambientLight = new THREE.AmbientLight(0x90a080, 0.6); // Softer, greenish ambient light for forest feel
+        scene.add(ambientLight);
+        
+        // Main directional light positioned to illuminate the egg from the front
+        const directionalLight = new THREE.DirectionalLight(0xffd28e, 1.2); // Increased intensity warm light
+        directionalLight.position.set(0, 0, 3); // Positioned directly in front of the egg
+        scene.add(directionalLight);
+        
+        // Add spotlight for focused illumination from the front
+        const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+        spotLight.position.set(0, 0, 4);
+        spotLight.angle = Math.PI / 6; // Narrow beam
+        spotLight.penumbra = 0.2; // Soft edges
+        spotLight.decay = 1.5;
+        spotLight.distance = 10;
+        scene.add(spotLight);
+        
+        // Add subtle fill light to simulate forest diffused light
+        const fillLight = new THREE.HemisphereLight(0x90a080, 0x404040, 0.4);
+        scene.add(fillLight);
+        
+        // Create egg function as shown in the image
+        function createEgg() {
+            var arr = [], girth = 0.719, apex = girth * 0.111111111; // fine-tune girth value
+            
+            for (var rad = 0; rad <= Math.PI; rad += 0.1047) { // 0.1047 radians = 6 degrees
+                var y = new THREE.Vector2((apex * Math.cos(rad) + girth) * Math.sin(rad), - Math.cos(rad));
+                arr.push(y);
+            }
+            
+            return new THREE.Mesh(
+                new THREE.LatheGeometry(arr, 24),
+                new THREE.MeshLambertMaterial({ color: 0xF0EAD6 }) // NOTE: natural eggshell is #F0EAD6
+            );
+        }
+        
+        // Create egg geometry
+        function createEggGeometry(height = 2, radialSegments = 32, heightSegments = 24) {
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const normals = [];
+            const uvs = [];
+            const indices = [];
+            
+            // Create vertices
+            for (let y = 0; y <= heightSegments; y++) {
+                const v = y / heightSegments;
+                
+                // Egg shape - wider at bottom, narrower at top
+                const yPos = v * height - height / 2;
+                
+                // Improved egg shape formula
+                // Using a parametric equation for a more realistic egg shape
+                const t = Math.PI * v; // Map v [0,1] to angle [0,π]
+                
+                // Calculate radius using a proper egg shape formula
+                // This creates a realistic egg shape with wider bottom and pointed top
+                
+                // Using a specialized egg curve formula based on mathematical models of real eggs
+                // This formula is specifically designed to create the classic egg shape
+                
+                // Using a true egg curve equation based on the classic mathematical model
+                // This is based on the mathematical formula for egg curves by Hügelschäffer
+                
+                // Parameters for a perfect egg shape
+                const a = 1.0;       // Base radius
+                const b = 0.17;      // Controls the egg-like asymmetry (lower = more symmetric)
+                const c = 0.1;       // Controls the pointiness at the top
+                const d = 0.06;      // Controls the roundness at the bottom
+                const yScale = 1.7;  // Vertical scaling factor
+                
+                // Map v [0,1] to position on the egg (-1 to 1, bottom to top)
+                const pos = 2.0 * v - 1.0;
+                
+                // Calculate radius using a modified egg curve formula
+                // This creates the characteristic egg shape with a rounded bottom and pointed top
+                let radius;
+                
+                if (pos < 0) {
+                    // Bottom half - more rounded
+                    radius = a * (1.0 + b * Math.sqrt(1.0 - Math.pow(pos, 2)) + d * Math.pow(1.0 + pos, 2));
+                } else {
+                    // Top half - more pointed
+                    radius = a * (1.0 + b * Math.sqrt(1.0 - Math.pow(pos, 2)) - c * Math.pow(pos, 2.5));
+                }
+                
+                // Apply additional shaping for a more natural egg appearance
+                let adjustedRadius = radius;
+                
+                // Extra pointiness at the very top
+                if (pos > 0.85) {
+                    const topFactor = (pos - 0.85) / 0.15; // 0 at pos=0.85, 1 at pos=1.0
+                    adjustedRadius = radius * (1.0 - 0.15 * Math.pow(topFactor, 1.5));
+                }
+                
+                // Extra roundness at the very bottom
+                if (pos < -0.9) {
+                    const bottomFactor = (-pos - 0.9) / 0.1; // 0 at pos=-0.9, 1 at pos=-1.0
+                    adjustedRadius = adjustedRadius * (1.0 - 0.05 * bottomFactor);
+                }
+                
+                // Apply vertical scaling for proper proportions
+                
+                // Scale y position to make the egg properly proportioned
+                const scaledYPos = yPos * yScale;
+                
+                for (let x = 0; x <= radialSegments; x++) {
+                    const u = x / radialSegments;
+                    const theta = u * Math.PI * 2;
+                    
+                    const sinTheta = Math.sin(theta);
+                    const cosTheta = Math.cos(theta);
+                    
+                    // Position
+                    const xPos = radius * sinTheta;
+                    const zPos = radius * cosTheta;
+                    positions.push(xPos, scaledYPos, zPos);
+                    
+                    // Normal - for egg shape
+                    // Calculate normal based on the egg surface curvature
+                    const nx = sinTheta;
+                    // Adjust normal y component based on position on the egg
+                    const ny = 0.5 * Math.cos(t); // Varies based on vertical position
+                    const nz = cosTheta;
+                    const length = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    normals.push(nx / length, ny / length, nz / length);
+                    
+                    // UV mapping
+                    uvs.push(u, v);
+                }
+            }
+            
+            // Create faces (indices)
+            for (let y = 0; y < heightSegments; y++) {
+                for (let x = 0; x < radialSegments; x++) {
+                    const a = y * (radialSegments + 1) + x;
+                    const b = y * (radialSegments + 1) + x + 1;
+                    const c = (y + 1) * (radialSegments + 1) + x + 1;
+                    const d = (y + 1) * (radialSegments + 1) + x;
+                    
+                    // Two triangles per quad
+                    indices.push(a, b, d);
+                    indices.push(b, c, d);
+                }
+            }
+            
+            geometry.setIndex(indices);
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+            geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+            
+            geometry.computeVertexNormals(); // Recalculate normals for better lighting
+            
+            return geometry;
+        }
+        
+        // Load texture
+        const textureLoader = new THREE.TextureLoader();
+        // Add cross-origin handling for textures
+        textureLoader.crossOrigin = 'anonymous';
+        
+        // Add error handling for texture loading
+        const texture = textureLoader.load(
+            './R.png', // Use relative path with ./ prefix
+            function(loadedTexture) {
+                console.log('Texture loaded successfully');
+                // Apply texture to the egg material
+                egg.material.map = loadedTexture;
+                egg.material.needsUpdate = true;
+            },
+            function(xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function(err) {
+                console.error('Error loading texture:', err);
+                // Fallback to a solid color if texture fails to load
+                egg.material.color.set(0x00FF00); // Green color as fallback
+                egg.material.needsUpdate = true;
+            }
+        );
+        texture.offset.set(0.5,0);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        
+        // Create egg mesh using the createEgg function
+        const egg = createEgg();
+        
+        // Add to scene (texture will be applied in the callback)
+        scene.add(egg);
+        
+        // Add orbit controls for rotation
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.rotateSpeed = 0.8;
+        controls.enableZoom = true;
+        controls.enablePan = false;
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>
