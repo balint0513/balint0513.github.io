@@ -28,16 +28,10 @@
 <body>
     <div id="info"><span>SHREGG</span></div>
     
-    <audio id="background-music" loop>
+    <audio id="background-music">
     <source src="AUUGHHH EXTENDED SOUND EFFECT-yt.savetube.me.mp3" type="audio/mpeg">
     </audio>
-    <script>
-        // JavaScript to play the background music automatically
-        window.addEventListener('load', function() {
-            var audio = document.getElementById('background-music');
-            audio.play();
-        });
-    </script>
+    <!-- Removed automatic playback script -->
 
     <script type="importmap">
         {
@@ -291,6 +285,31 @@
         controls.rotateSpeed = 0.8;
         controls.enableZoom = true;
         controls.enablePan = false;
+        
+        // Add audio playback on user interaction with controls
+        controls.addEventListener('change', function() {
+            const audio = document.getElementById('background-music');
+            // Only play if the audio is not currently playing
+            if (audio.paused || audio.ended) {
+                // Audio is not playing, so play it
+                audio.play()
+                    .then(() => {
+                        console.log('Audio playback started successfully');
+                    })
+                    .catch(error => {
+                        console.error('Audio playback failed:', error);
+                    });
+            }
+            
+            // Audio is not playing, so play it
+            audio.play()
+                .then(() => {
+                    console.log('Audio playback started successfully');
+                })
+                .catch(error => {
+                    console.error('Audio playback failed:', error);
+                });
+        });
         
         // Handle window resize
         window.addEventListener('resize', () => {
