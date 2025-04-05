@@ -23,6 +23,45 @@
         #info span{
             text-shadow: 2px 2px 5px black;
         }
+        #texture-switch-icon {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        #texture-switch-icon:hover {
+            transform: scale(1.1);
+        }
+        #texture-switch-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+            transform: scale(1.05);
+        }
+        #tobacco {
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            flex-direction: row;
+            position: absolute; bottom: 0; left: 0;
+            cursor: pointer;
+            margin-bottom: 5px;
+            margin-left: 10px;
+            z-index: 100;
+            transition: transform 0.3s ease;
+            font-size: 10px;
+        }
+        #tobacco:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+            transform: scale(1.05);
+            color: white;
+            border-radius: 5px;
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
@@ -31,6 +70,17 @@
     <audio id="background-music">
     <source src="AUUGHHH EXTENDED SOUND EFFECT-yt.savetube.me.mp3" type="audio/mpeg">
     </audio>
+    <!-- Audio element for texture switch sound -->
+    <audio id="texture-switch-sound">
+        <source src="isti/ki sziv toltott cigit.mp3" type="audio/mpeg">
+    </audio>
+    <!-- Audio element for random Isti sounds -->
+    <audio id="isti-sound">
+        <source src="" type="audio/mpeg">
+    </audio>
+    <!-- Texture switch button -->
+    <img id="texture-switch-icon" src="tobacco.png" alt="Switch Texture" />
+    <a id="tobacco" href="https://www.flaticon.com/free-icons/cigarette" title="cigarette icons">Cigarette icons created by Luvdat - Flaticon</a>
     <!-- Removed automatic playback script -->
 
     <script type="importmap">
@@ -259,28 +309,48 @@
         // Add cross-origin handling for textures
         textureLoader.crossOrigin = 'anonymous';
         
-        // Add error handling for texture loading
-        const texture = textureLoader.load(
+        // Track current texture state
+        let currentTexture = 'R.png';
+        
+        // Preload both textures
+        const rTexture = textureLoader.load(
             './R.png', // Use relative path with ./ prefix
             function(loadedTexture) {
-                console.log('Texture loaded successfully');
+                console.log('R texture loaded successfully');
                 // Apply texture to the egg material
                 egg.material.map = loadedTexture;
                 egg.material.needsUpdate = true;
             },
             function(xhr) {
-                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                console.log('R texture: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
             },
             function(err) {
-                console.error('Error loading texture:', err);
+                console.error('Error loading R texture:', err);
                 // Fallback to a solid color if texture fails to load
                 egg.material.color.set(0x00FF00); // Green color as fallback
                 egg.material.needsUpdate = true;
             }
         );
-        texture.offset.set(0.5,0);
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
+        rTexture.offset.set(0.5,0);
+        rTexture.wrapS = THREE.RepeatWrapping;
+        rTexture.wrapT = THREE.RepeatWrapping;
+        
+        const istiTexture = textureLoader.load(
+            './Isti.png', // Use relative path with ./ prefix
+            function(loadedTexture) {
+                console.log('Isti texture loaded successfully');
+            },
+            function(xhr) {
+                console.log('Isti texture: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function(err) {
+                console.error('Error loading Isti texture:', err);
+            }
+        );
+        istiTexture.offset.set(0.56, 0.05);
+        istiTexture.wrapS = THREE.RepeatWrapping;
+        istiTexture.wrapT = THREE.RepeatWrapping;
+        istiTexture.repeat.set(1, 1);
         
         // Create egg mesh using the createEgg function
         const egg = createEgg();
@@ -296,24 +366,122 @@
         controls.enableZoom = true;
         controls.enablePan = false;
         
+        // Flag to track if an Isti sound is currently playing
+        let isIstiSoundPlaying = false;
+        
+        // Function to play a random Isti sound (excluding the switch sound)
+        function playRandomIstiSound() {
+            // Only play if no Isti sound is currently playing
+            if (isIstiSoundPlaying) {
+                console.log('Isti sound already playing, waiting for it to finish');
+                return;
+            }
+            
+            // List of available Isti sounds (excluding the switch sound)
+            const istiSounds = [
+                'isti/kalapacsol.mp3',
+                'isti/milyennyiregy.mp3',
+                'isti/tizkilometer.mp3',
+                'isti/villamosszek.mp3'
+            ];
+            
+            // Select a random sound from the list
+            const randomSound = istiSounds[Math.floor(Math.random() * istiSounds.length)];
+            const istiAudio = document.getElementById('isti-sound');
+            istiAudio.src = randomSound;
+            
+            // Set the flag to true before playing
+            isIstiSoundPlaying = true;
+            
+            istiAudio.play()
+                .then(() => {
+                    console.log('Isti sound playback started successfully');
+                })
+                .catch(error => {
+                    console.error('Isti sound playback failed:', error);
+                    // Reset the flag if playback fails
+                    isIstiSoundPlaying = false;
+                });
+            
+            // Add event listener to reset the flag when the sound finishes
+            istiAudio.addEventListener('ended', function() {
+                console.log('Isti sound playback finished');
+                isIstiSoundPlaying = false;
+            }, { once: true });
+        }
+        
         // Add audio playback on user interaction with controls
         controls.addEventListener('change', function() {
-            const audio = document.getElementById('background-music');
-            // Only play if the audio is not currently playing
-            if (audio.paused || audio.ended) {
-                // Audio is not playing, so play it
-                audio.play()
+            // Play different sounds based on current texture
+            if (currentTexture === 'R.png') {
+                const audio = document.getElementById('background-music');
+                // Only play if the audio is not currently playing
+                if (audio.paused || audio.ended) {
+                    // Audio is not playing, so play it
+                    audio.play()
+                        .then(() => {
+                            console.log('Audio playback started successfully');
+                        })
+                        .catch(error => {
+                            console.error('Audio playback failed:', error);
+                            // If we get NotAllowedError, we need user interaction
+                            if (error.name === 'NotAllowedError') {
+                                console.log('Audio playback requires user interaction first');
+                            }
+                        });
+                }
+            } else if (currentTexture === 'Isti.png') {
+                // Play a random Isti sound
+                playRandomIstiSound();
+            }
+        });
+        
+        // Add texture switch icon functionality
+        document.getElementById('texture-switch-icon').addEventListener('click', function() {
+            const infoSpan = document.querySelector('#info span');
+            if (currentTexture === 'R.png') {
+                // Switch to Isti texture
+                egg.material.map = istiTexture;
+                egg.material.needsUpdate = true;
+                currentTexture = 'Isti.png';
+                infoSpan.textContent = 'MC PITYU';
+                
+                // Stop AUUGHHH sound if it's playing
+                const audio = document.getElementById('background-music');
+                if (!audio.paused) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+                
+                // Set isIstiSoundPlaying to true before playing the switch sound
+                isIstiSoundPlaying = true;
+                
+                // Play the specific switch sound (ki sziv toltott cigit.mp3)
+                const istiAudio = document.getElementById('isti-sound');
+                istiAudio.src = 'isti/ki sziv toltott cigit.mp3';
+                istiAudio.play()
                     .then(() => {
-                        console.log('Audio playback started successfully');
+                        console.log('Switch sound played successfully');
                     })
                     .catch(error => {
-                        console.error('Audio playback failed:', error);
-                        // If we get NotAllowedError, we need user interaction
-                        if (error.name === 'NotAllowedError') {
-                            console.log('Audio playback requires user interaction first');
-                        }
+                        console.error('Switch sound playback failed:', error);
+                        isIstiSoundPlaying = false; // Reset flag if playback fails
                     });
+                
+                // Add event listener to reset the flag when the switch sound finishes
+                istiAudio.addEventListener('ended', function() {
+                    console.log('Switch sound playback finished');
+                    isIstiSoundPlaying = false;
+                }, { once: true });
+            } else {
+                // Switch back to R texture (no sound)
+                egg.material.map = rTexture;
+                egg.material.needsUpdate = true;
+                currentTexture = 'R.png';
+                infoSpan.textContent = 'SHREGG';
             }
+            
+            console.log('Switched texture to:', currentTexture);
         });
         
         // Handle window resize
